@@ -7,7 +7,6 @@ export async function POST(request) {
     const file = formData.get('file');
     const passcode = formData.get('passcode');
     
-    // NEW: Get the custom fields
     const arf = formData.get('arf');
     const proofNumber = formData.get('proofNumber');
 
@@ -23,14 +22,21 @@ export async function POST(request) {
       return NextResponse.json({ error: "Only .html files are allowed" }, { status: 400 });
     }
 
-    // NEW: Construct the custom filename
-    let prefix = "";
-    if (arf) prefix += `ARF-${arf}-`;
-    if (proofNumber) prefix += `v-${proofNumber}-`;
+    // NEW: Construct the shorter, cleaner filename
+    let baseName = "";
+    if (arf) baseName += `ARF-${arf}`;
+    if (proofNumber) baseName += (baseName ? `-v-${proofNumber}` : `v-${proofNumber}`);
     
-    // Clean any weird characters out of the prefix just to be safe
-    prefix = prefix.replace(/[^a-zA-Z0-9-]/g, '-');
-    const customFilename = prefix + file.name;
+    // If the editor left both fields blank, fallback to just "proof"
+    if (!baseName) {
+      baseName = "proof";
+    }
+    
+    // Sanitize the name to remove any weird characters
+    baseName = baseName.replace(/[^a-zA-Z0-9-]/g, '-');
+    
+    // Attach the .html extension directly to our new clean name
+    const customFilename = `${baseName}.html`;
 
     const blob = await put(customFilename, file, {
       access: 'public',

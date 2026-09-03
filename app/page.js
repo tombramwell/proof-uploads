@@ -65,12 +65,15 @@ export default function ProofUploader() {
         console.warn("Could not save passcode to browser:", storageError);
       }
 
+      // NEW: Extract just the filename and build the clean URL
+      const blobUrl = new URL(data.url);
+      const fileName = blobUrl.pathname.split('/').pop(); // Extracts just "ARF-test-123.html"
+
       const baseUrl = window.location.origin; 
-      const viewableUrl = `${baseUrl}/api/view?url=${encodeURIComponent(data.url)}`;
+      const cleanUrl = `${baseUrl}/proof/${fileName}`;
       
-      setShareUrl(viewableUrl);
+      setShareUrl(cleanUrl);
       
-      // NEW: Optional - clear the ARF and Proof fields for the next upload
       setArf("");
       setProofNumber("");
       
@@ -131,7 +134,7 @@ export default function ProofUploader() {
                 Proof Number
               </label>
               <input
-                type="text"
+                type="number"
                 id="proofNumber"
                 value={proofNumber}
                 onChange={(e) => setProofNumber(e.target.value)}

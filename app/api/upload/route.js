@@ -25,7 +25,7 @@ export async function POST(request) {
     // NEW: Construct the shorter, cleaner filename
     let baseName = "";
     if (arf) baseName += `ARF-${arf}`;
-    if (proofNumber) baseName += (baseName ? `-v-${proofNumber}` : `v-${proofNumber}`);
+    if (proofNumber) baseName += (baseName ? `-v${proofNumber}` : `v${proofNumber}`);
     
     // If the editor left both fields blank, fallback to just "proof"
     if (!baseName) {
@@ -41,7 +41,7 @@ export async function POST(request) {
     const blob = await put(customFilename, file, {
       access: 'public',
       contentType: 'text/html',
-      addRandomSuffix: true,
+      allowOverwrite: true,
     });
 
     return NextResponse.json({ url: blob.url });

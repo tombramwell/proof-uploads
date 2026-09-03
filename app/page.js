@@ -91,9 +91,9 @@ export default function ProofUploader() {
   return (
     <main className="min-h-screen p-8 flex flex-col items-center justify-center bg-gray-50">
       <div className="max-w-xl w-full bg-white p-8 rounded-lg shadow-md border border-gray-200">
-        <h1 className="text-2xl font-bold mb-2 text-gray-800">Host HTML Proof</h1>
+        <h1 className="text-2xl font-bold mb-2 text-gray-800">Reach Studio Proof Link Generator</h1>
         <p className="text-gray-600 mb-6">
-          Upload your SingleFile `.html` document to generate a permanent, shareable link.
+          Upload the SingleFile &apos;.html&apos; document to generate a shareable link.
         </p>
 
         <form onSubmit={handleUpload} className="space-y-4">
@@ -115,7 +115,7 @@ export default function ProofUploader() {
           <div className="flex gap-4">
             <div className="w-1/2">
               <label htmlFor="arf" className="block text-sm font-medium text-gray-700 mb-1">
-                ARF (Optional)
+                ARF (numbers only)
               </label>
               <input
                 type="text"
@@ -128,7 +128,7 @@ export default function ProofUploader() {
             </div>
             <div className="w-1/2">
               <label htmlFor="proofNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                Proof Number (Optional)
+                Proof Number
               </label>
               <input
                 type="text"
@@ -143,7 +143,7 @@ export default function ProofUploader() {
 
           <div>
             <label htmlFor="passcode" className="block text-sm font-medium text-gray-700 mb-1">
-              Team Passcode
+              Team passcode
             </label>
             <input
               type="password"

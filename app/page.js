@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 export default function ProofUploader() {
   const [file, setFile] = useState(null);
   const [passcode, setPasscode] = useState("");
-  // NEW: State for the custom fields
   const [arf, setArf] = useState("");
   const [proofNumber, setProofNumber] = useState("");
   
@@ -45,7 +44,6 @@ export default function ProofUploader() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("passcode", passcode);
-    // NEW: Append the custom fields to the payload
     formData.append("arf", arf);
     formData.append("proofNumber", proofNumber);
 
@@ -56,7 +54,6 @@ export default function ProofUploader() {
       });
 
       const data = await response.json();
-
       if (!response.ok) throw new Error(data.error || "Upload failed");
 
       try {
@@ -65,17 +62,13 @@ export default function ProofUploader() {
         console.warn("Could not save passcode to browser:", storageError);
       }
 
-      // NEW: Extract just the filename and build the clean URL
       const blobUrl = new URL(data.url);
-      const fileName = blobUrl.pathname.split('/').pop(); // Extracts just "ARF-test-123.html"
+      const fileName = blobUrl.pathname.split('/').pop();
 
       const baseUrl = window.location.origin; 
-      const cleanUrl = `${baseUrl}/proof/${fileName}`;
+      const cleanUrl = `${baseUrl}/${fileName}`;
       
       setShareUrl(cleanUrl);
-      
-      setArf("");
-      setProofNumber("");
       
     } catch (err) {
       setError(err.message);
@@ -83,69 +76,67 @@ export default function ProofUploader() {
         if (err.message === "Incorrect passcode") {
           localStorage.removeItem("proofPasscode");
         }
-      } catch (e) {
-        // Ignore storage removal errors
-      }
+      } catch (e) {}
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen p-8 flex flex-col items-center justify-center bg-gray-50">
-      <div className="max-w-xl w-full bg-white p-8 rounded-lg shadow-md border border-gray-200">
+    <main className="min-h-screen p-8 flex flex-col items-center justify-center">
+      {/* We apply the custom brand-card class here for the hover/shadow effects */}
+      <div className="max-w-xl w-full brand-card p-8">
         <h1 className="text-2xl font-bold mb-2 text-gray-800">Reach Studio Proof Link Generator</h1>
         <p className="text-gray-600 mb-6">
           Upload the SingleFile &apos;.html&apos; document to generate a shareable link.
         </p>
 
-        <form onSubmit={handleUpload} className="space-y-4">
+        <form onSubmit={handleUpload} className="space-y-5">
           <div>
             <input
               type="file"
               accept=".html,.htm"
               onChange={handleFileChange}
-              className="block w-full text-sm text-gray-500
+              className="block w-full text-sm text-brand-text
                 file:mr-4 file:py-2 file:px-4
-                file:rounded-md file:border-0
+                file:rounded-full file:border-0
                 file:text-sm file:font-semibold
-                file:bg-blue-50 file:text-blue-700
-                hover:file:bg-blue-100 mb-4"
+                file:bg-brand-secondary file:text-brand-primary
+                hover:file:opacity-90 cursor-pointer mb-2"
             />
           </div>
 
-          {/* NEW: ARF and Proof Number fields (Side-by-side) */}
           <div className="flex gap-4">
             <div className="w-1/2">
-              <label htmlFor="arf" className="block text-sm font-medium text-gray-700 mb-1">
-                ARF (numbers only)
+              <label htmlFor="arf" className="block text-sm font-semibold text-brand-primary mb-1">
+                ARF
               </label>
               <input
                 type="text"
                 id="arf"
                 value={arf}
                 onChange={(e) => setArf(e.target.value)}
-                placeholder="e.g. 12345"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                placeholder="e.g. ARF-123456"
+                className="w-full px-4 py-2 border border-brand-secondary/50 rounded-brand focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-brand-bg/50"
               />
             </div>
             <div className="w-1/2">
-              <label htmlFor="proofNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                Proof Number
+              <label htmlFor="proofNumber" className="block text-sm font-semibold text-brand-primary mb-1">
+                Proof version
               </label>
               <input
                 type="number"
                 id="proofNumber"
                 value={proofNumber}
                 onChange={(e) => setProofNumber(e.target.value)}
-                placeholder="e.g. 1"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                placeholder="1"
+                className="w-full px-4 py-2 border border-brand-secondary/50 rounded-brand focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-brand-bg/50"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="passcode" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="passcode" className="block text-sm font-semibold text-brand-primary mb-1">
               Team passcode
             </label>
             <input
@@ -155,31 +146,33 @@ export default function ProofUploader() {
               onChange={(e) => setPasscode(e.target.value)}
               placeholder="Enter access code"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-brand-secondary/50 rounded-brand focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-brand-bg/50"
             />
           </div>
 
-          {error && <div className="text-red-600 text-sm p-2 bg-red-50 rounded">{error}</div>}
+          {error && <div className="text-red-700 font-medium text-sm p-3 bg-red-50 border border-red-200 rounded-brand">{error}</div>}
 
           <button
             type="submit"
             disabled={!file || !passcode || isLoading}
-            className={`w-full py-2 px-4 rounded-md text-white font-medium transition-colors 
-              ${(!file || !passcode || isLoading) ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`
+            className={`w-full py-3 px-4 rounded-brand text-white font-semibold transition-all duration-200
+              ${(!file || !passcode || isLoading) 
+                ? 'bg-brand-secondary cursor-not-allowed' 
+                : 'bg-brand-primary hover:bg-brand-primary/90 hover:shadow-lg'}`
             }
           >
-            {isLoading ? "Uploading..." : "Get Shareable Link"}
+            {isLoading ? "Uploading..." : "Generate Proof Link"}
           </button>
         </form>
 
         {shareUrl && (
-          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-sm text-green-800 font-medium mb-2">Upload successful! Share this link:</p>
+          <div className="mt-8 p-5 bg-brand-bg border-2 border-brand-accent/30 rounded-brand">
+            <p className="text-sm text-brand-primary font-bold mb-2">Upload successful! Share this link:</p>
             <a 
               href={shareUrl} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-blue-600 underline break-all text-sm"
+              className="text-brand-primary font-medium break-all hover:text-brand-accent transition-colors"
             >
               {shareUrl}
             </a>

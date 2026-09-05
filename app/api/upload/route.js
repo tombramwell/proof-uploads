@@ -24,7 +24,7 @@ export async function POST(request) {
 
     // NEW: Construct the shorter, cleaner filename
     let baseName = "";
-    if (arf) baseName += `ARF-${arf}`;
+    if (arf) baseName += `${arf}`;
     if (proofNumber) baseName += (baseName ? `-v${proofNumber}` : `v${proofNumber}`);
     
     // If the editor left both fields blank, fallback to just "proof"

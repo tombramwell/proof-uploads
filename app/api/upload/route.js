@@ -1,5 +1,6 @@
 import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
+import * as cheerio from 'cheerio';
 
 export async function POST(request) {
   try {
@@ -22,26 +23,36 @@ export async function POST(request) {
       return NextResponse.json({ error: "Only .html files are allowed" }, { status: 400 });
     }
 
-    // NEW: Construct the shorter, cleaner filename
+    // 1. Convert the uploaded file into a raw text string
+    const rawHtml = await file.text();
+
+    // 2. Load the HTML into Cheerio
+    const $ = cheerio.load(rawHtml);
+
+    // 3. REMOVE THE AD SLOT 
+    // You will need to change '.ad-slot-class' to the actual class or ID of the ad div
+    $('[data-testid="commercial-above-header-box-1"]').remove();
+    $('[data-testid="commercial-1"]').remove();     
+
+    // 4. Export the cleaned HTML back to a string
+    const cleanedHtml = $.html();
+
     let baseName = "";
     if (arf) baseName += `${arf}`;
     if (proofNumber) baseName += (baseName ? `-v${proofNumber}` : `v${proofNumber}`);
     
-    // If the editor left both fields blank, fallback to just "proof"
     if (!baseName) {
       baseName = "proof";
     }
     
-    // Sanitize the name to remove any weird characters
     baseName = baseName.replace(/[^a-zA-Z0-9-]/g, '-');
-    
-    // Attach the .html extension directly to our new clean name
     const customFilename = `${baseName}.html`;
 
-    const blob = await put(customFilename, file, {
+    // 5. Upload the `cleanedHtml` string instead of the raw `file` object
+    const blob = await put(customFilename, cleanedHtml, {
       access: 'public',
       contentType: 'text/html',
-      allowOverwrite: true,
+      allowOverwrite: true, 
     });
 
     return NextResponse.json({ url: blob.url });

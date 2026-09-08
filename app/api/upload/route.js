@@ -32,7 +32,16 @@ export async function POST(request) {
     // 3. REMOVE THE AD SLOT 
     // You will need to change '.ad-slot-class' to the actual class or ID of the ad div
     $('[data-testid="commercial-above-header-box-1"]').remove();
-    $('[data-testid="commercial-1"]').remove();     
+    $('[data-testid="commercial-1"]').remove();
+    $('meta').filter((i, el) => $(el).attr('http-equiv')?.toLowerCase() === 'content-security-policy').remove();
+    
+    const videoEmbedUrl = formData.get('videoEmbedUrl');
+    if (videoEmbedUrl) {
+      // Find the specific div, clear anything inside it, and inject the Drive iframe
+      $('.PrimisPlayer_player-poster-wrapper-embed__agVi_').empty().append(
+        `<iframe src="${videoEmbedUrl}" width="100%" height="100%" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`
+      );
+    }
 
     // 4. Export the cleaned HTML back to a string
     const cleanedHtml = $.html();

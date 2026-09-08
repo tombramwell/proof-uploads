@@ -11,6 +11,10 @@ export default function ProofUploader() {
   const [isLoading, setIsLoading] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [error, setError] = useState("");
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoEmbedUrl, setVideoEmbedUrl] = useState("");
+  const [isVideoUploading, setIsVideoUploading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   useEffect(() => {
     const savedPasscode = localStorage.getItem("proofPasscode");
@@ -34,6 +38,59 @@ export default function ProofUploader() {
     }
   };
 
+  const handleVideoDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const droppedFile = e.dataTransfer.files[0];
+    
+    if (droppedFile && droppedFile.type.startsWith('video/')) {
+      setVideoFile(droppedFile);
+      handleVideoUpload(droppedFile);
+    } else {
+      setError("Please drop a valid video file.");
+    }
+  };
+
+  const handleVideoUpload = async (file) => {
+    setIsVideoUploading(true);
+    setError("");
+
+    try {
+      // 1. Get the secure upload URL from our API
+      const authRes = await fetch('/api/drive-auth', {
+        method: 'POST',
+        body: JSON.stringify({ filename: file.name, mimeType: file.type }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const { uploadUrl } = await authRes.json();
+
+      // 2. Upload directly from the browser to Google Drive (Bypasses Vercel limits!)
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type }
+      });
+
+      if (!uploadRes.ok) {
+        const errorText = await uploadRes.text();
+        console.error("Google Drive Error:", errorText);
+        throw new Error(`Google rejected the upload: ${errorText}`);
+      }
+
+      const driveData = await uploadRes.json();
+      
+      // 3. Construct the embed URL from the Drive File ID
+      const embedUrl = `https://drive.google.com/file/d/${driveData.id}/preview`;
+      setVideoEmbedUrl(embedUrl);
+      
+    } catch (err) {
+      setError("Failed to upload video to Google Drive.");
+      setVideoFile(null);
+    } finally {
+      setIsVideoUploading(false);
+    }
+  };
+
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!file) return;
@@ -46,6 +103,10 @@ export default function ProofUploader() {
     formData.append("passcode", passcode);
     formData.append("arf", arf);
     formData.append("proofNumber", proofNumber);
+
+    if (videoEmbedUrl) {
+      formData.append("videoEmbedUrl", videoEmbedUrl);
+    }
 
     try {
       const response = await fetch("/api/upload", {
@@ -132,6 +193,30 @@ export default function ProofUploader() {
                 placeholder="1"
                 className="w-full px-4 py-2 border border-brand-secondary/50 rounded-brand focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-brand-bg/50"
               />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-brand-primary mb-1">
+              Optional: Insert Video (Google Drive)
+            </label>
+            <div 
+              onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={handleVideoDrop}
+              className={`w-full p-6 border-2 border-dashed rounded-brand text-center transition-colors 
+                ${isDragOver ? 'border-brand-accent bg-brand-accent/10' : 'border-brand-secondary/50 bg-brand-bg/50'}
+                ${videoEmbedUrl ? 'border-green-500 bg-green-50' : ''}
+              `}
+            >
+              {isVideoUploading ? (
+                <span className="text-brand-primary font-medium animate-pulse">Uploading to Drive...</span>
+              ) : videoEmbedUrl ? (
+                <span className="text-green-700 font-medium">✅ Video uploaded!</span>
+              ) : (
+                <span className="text-brand-text/70 text-sm">
+                  Drag & Drop a video file here, or click to upload
+                </span>
+              )}
             </div>
           </div>
 

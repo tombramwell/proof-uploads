@@ -95,6 +95,11 @@ export default function ProofUploader() {
     e.preventDefault();
     if (!file) return;
 
+    if (!arf || arf.trim() === "") {
+      setError("Please enter an ARF number before uploading.");
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
@@ -170,11 +175,12 @@ export default function ProofUploader() {
           <div className="flex gap-4">
             <div className="w-1/2">
               <label htmlFor="arf" className="block text-sm font-semibold text-brand-primary mb-1">
-                ARF
+                ARF<span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 id="arf"
+                required
                 value={arf}
                 onChange={(e) => setArf(e.target.value)}
                 placeholder="e.g. ARF-123456"

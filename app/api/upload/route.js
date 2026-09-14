@@ -33,6 +33,9 @@ export async function POST(request) {
     // You will need to change '.ad-slot-class' to the actual class or ID of the ad div
     $('[data-testid="commercial-above-header-box-1"]').remove();
     $('[data-testid="commercial-1"]').remove();
+    $('[data-testid="skin-ad-left"]').remove();
+    $('[data-testid="skin-ad-right"]').remove();
+    $('[class="GoogleActiveViewInnerContainer"]').remove();
     $('[class="admin-bar"]').remove();
     $('[class="superbanner"]').remove();
     $('meta').filter((i, el) => $(el).attr('http-equiv')?.toLowerCase() === 'content-security-policy').remove();

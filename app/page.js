@@ -245,7 +245,7 @@ export default function ProofUploader() {
 
           <button
             type="submit"
-            disabled={!file || !passcode || isLoading}
+            disabled={!file || !passcode || !arf || isLoading || isVideoUploading}
             className={`w-full py-3 px-4 rounded-brand text-white font-semibold transition-all duration-200
               ${(!file || !passcode || isLoading) 
                 ? 'bg-brand-secondary cursor-not-allowed' 

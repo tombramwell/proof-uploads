@@ -30,15 +30,30 @@ export async function POST(request) {
     const $ = cheerio.load(rawHtml);
 
     // 3. REMOVE THE AD SLOT 
-    // You will need to change '.ad-slot-class' to the actual class or ID of the ad div
     $('[data-testid="commercial-above-header-box-1"]').remove();
     $('[data-testid="commercial-1"]').remove();
     $('[data-testid="skin-ad-left"]').remove();
     $('[data-testid="skin-ad-right"]').remove();
+    $('[data-testid="skin-ad-right"]').remove();
+    $('[data-testid="byline-publishedDate"]').remove();
     $('[class="GoogleActiveViewInnerContainer"]').remove();
     $('[class="admin-bar"]').remove();
     $('[class="superbanner"]').remove();
     $('meta').filter((i, el) => $(el).attr('http-equiv')?.toLowerCase() === 'content-security-policy').remove();
+    $('.ArticleTimestamp_updated-date-with-published__iFKpF')
+      .css('border-left', 'none')
+      .css('margin-left', '0')
+      .css('padding-left', '0');
+
+    const targetDiv = $('[data-testid="byline-updatedDate"]');
+    let currentHtml = targetDiv.html();
+    
+    if (currentHtml) {
+      // /Updated/i means "case insensitive" (catches UPDATED, Updated, updated)
+      // \s* means "and any weird spaces or line breaks that come immediately after it"
+      currentHtml = currentHtml.replace(/Updated\s*/i, ''); 
+      targetDiv.html(currentHtml);
+    }
     
     const videoEmbedUrl = formData.get('videoEmbedUrl');
     if (videoEmbedUrl) {

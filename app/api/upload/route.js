@@ -34,7 +34,6 @@ export async function POST(request) {
     $('[data-testid="commercial-1"]').remove();
     $('[data-testid="skin-ad-left"]').remove();
     $('[data-testid="skin-ad-right"]').remove();
-    $('[data-testid="skin-ad-right"]').remove();
     $('[data-testid="byline-publishedDate"]').remove();
     $('[class="GoogleActiveViewInnerContainer"]').remove();
     $('[class="admin-bar"]').remove();
@@ -44,6 +43,14 @@ export async function POST(request) {
       .css('border-left', 'none')
       .css('margin-left', '0')
       .css('padding-left', '0');
+    $('header').css('position', 'sticky')
+                  .css('top', '0')
+                  .css('margin-top', '0')
+                  .css('z-index', '9999')
+              // .css('background-color', '#ffffff');
+    $('[data-testid="header-container"]').css('position', 'sticky')
+                                         .css('top', '0')
+                                         .css('z-index', '9999');
 
     const targetDiv = $('[data-testid="byline-updatedDate"]');
     let currentHtml = targetDiv.html();

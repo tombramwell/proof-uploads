@@ -51,6 +51,7 @@ export async function POST(request) {
     $('[data-testid="header-container"]').css('position', 'sticky')
                                          .css('top', '0')
                                          .css('z-index', '9999');
+    $('head').append('<meta name="robots" content="noindex, nofollow">');
 
     const targetDiv = $('[data-testid="byline-updatedDate"]');
     let currentHtml = targetDiv.html();

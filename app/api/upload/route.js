@@ -34,6 +34,8 @@ export async function POST(request) {
     $('[data-testid="commercial-1"]').remove();
     $('[data-testid="skin-ad-left"]').remove();
     $('[data-testid="skin-ad-right"]').remove();
+    $('[id="qc-ad-fixed-size-wrapper"]').remove();
+    //qc-ad-fixed-size-wrapper
     $('[data-testid="byline-publishedDate"]').remove();
     $('[class="GoogleActiveViewInnerContainer"]').remove();
     $('[class="admin-bar"]').remove();

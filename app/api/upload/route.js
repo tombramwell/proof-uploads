@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob';
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 
@@ -85,14 +85,28 @@ export async function POST(request) {
     baseName = baseName.replace(/[^a-zA-Z0-9-]/g, '-');
     const customFilename = `${baseName}.html`;
 
-    // 5. Upload the `cleanedHtml` string instead of the raw `file` object
-    const blob = await put(customFilename, cleanedHtml, {
-      access: 'public',
-      contentType: 'text/html',
-      allowOverwrite: true, 
+// 5. Connect to Cloudflare R2
+    const S3 = new S3Client({
+      region: "auto",
+      endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+      },
     });
 
-    return NextResponse.json({ url: blob.url });
+    // 6. Upload the cleaned HTML
+    await S3.send(new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: customFilename,
+      Body: cleanedHtml,
+      ContentType: 'text/html',
+    }));
+
+    // 7. Generate the final viewable link!
+    const origin = request.headers.get('origin') || 'http://localhost:3000';
+    const finalUrl = `${origin}/${customFilename}`; // Removed /proof/
+    return NextResponse.json({ url: finalUrl });
     
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

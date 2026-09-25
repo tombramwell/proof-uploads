@@ -35,7 +35,6 @@ export async function POST(request) {
     $('[data-testid="skin-ad-left"]').remove();
     $('[data-testid="skin-ad-right"]').remove();
     $('[id="qc-ad-fixed-size-wrapper"]').remove();
-    //qc-ad-fixed-size-wrapper
     $('[data-testid="byline-publishedDate"]').remove();
     $('[class="GoogleActiveViewInnerContainer"]').remove();
     $('[class="admin-bar"]').remove();
@@ -54,6 +53,11 @@ export async function POST(request) {
                                          .css('top', '0')
                                          .css('z-index', '9999');
     $('head').append('<meta name="robots" content="noindex, nofollow">');
+    $('form, input, textarea, button').remove();
+    $('link[rel="canonical"]').remove();
+    $('meta[property="og:url"]').remove();
+    $('iframe').remove();
+    $('script').remove();
 
     const targetDiv = $('[data-testid="byline-updatedDate"]');
     let currentHtml = targetDiv.html();

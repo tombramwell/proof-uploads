@@ -16,15 +16,10 @@ const nextConfig = {
       {
         source: '/:file([a-zA-Z0-9-]+\\.html)',
         headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Content-Security-Policy',
-            // This strictly tells firewalls: "This page is safe, it cannot run malicious scripts"
-            value: "default-src 'self' 'unsafe-inline' data: https:; script-src 'none';",
-          }
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Content-Security-Policy', value: "default-src 'self' 'unsafe-inline' data: https:; script-src 'none';" },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'no-referrer' }
         ],
       },
     ];

@@ -58,6 +58,7 @@ export async function POST(request) {
     $('meta[property="og:url"]').remove();
     $('iframe').remove();
     $('script').remove();
+    $('header a, footer a, nav a, aside a, [data-testid="header-container"] a').attr('href', '#');
 
     const targetDiv = $('[data-testid="byline-updatedDate"]');
     let currentHtml = targetDiv.html();

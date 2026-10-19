@@ -56,7 +56,7 @@ export async function POST(request) {
     $('form, input, textarea, button').remove();
     $('link[rel="canonical"]').remove();
     $('meta[property="og:url"]').remove();
-    $('iframe').remove();
+    $('iframe').not('iframe[src*="wayin.com"]').remove();
     $('script').remove();
     $('header a, footer a, nav a, aside a, [data-testid="header-container"] a').attr('href', '#');
 

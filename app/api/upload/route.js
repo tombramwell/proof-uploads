@@ -53,10 +53,11 @@ export async function POST(request) {
                                          .css('top', '0')
                                          .css('z-index', '9999');
     $('head').append('<meta name="robots" content="noindex, nofollow">');
-    $('form, input, textarea, button').remove();
+    $('form').not(':has(iframe[src*="wayin.com"], iframe[srcdoc*="wayin.com"])').remove();
+    $('input, textarea, button').remove();
     $('link[rel="canonical"]').remove();
     $('meta[property="og:url"]').remove();
-    $('iframe').not('iframe[src*="wayin.com"]').remove();
+    $('iframe:not([src*="wayin.com"], [srcdoc*="wayin.com"])').remove();
     $('script').remove();
     $('header a, footer a, nav a, aside a, [data-testid="header-container"] a').attr('href', '#');
 

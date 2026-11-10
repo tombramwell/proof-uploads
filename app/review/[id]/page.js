@@ -283,7 +283,7 @@ const handleIframeLoad = () => {
             {/* 4. DRAFTING TEXT AREA */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <textarea 
-                placeholder="Highlight text and click the Quote button for easy markups, then type the requested changes here. Click 'Add to list' to keep amennds separate for clarity, then click 'Submit All' to process them to the Reach Studio Commercial Content team.." 
+                placeholder="Highlight text and click the Quote button for easy markups, then detail the requested changes here. Click 'Add to list' to keep amends separate for clarity, then click 'Submit All' when complete." 
                 value={draftComment} 
                 onChange={(e) => setDraftComment(e.target.value)} 
                 rows={4} 

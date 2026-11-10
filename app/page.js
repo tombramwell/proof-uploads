@@ -131,8 +131,9 @@ export default function ProofUploader() {
       const blobUrl = new URL(data.url);
       const fileName = blobUrl.pathname.split('/').pop();
 
+      const proofId = fileName.replace(/\.html?$/i, '');
       const baseUrl = window.location.origin; 
-      const cleanUrl = `${baseUrl}/${fileName}`;
+      const cleanUrl = `${baseUrl}/review/${proofId}`;
       
       setShareUrl(cleanUrl);
       

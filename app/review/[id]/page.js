@@ -225,7 +225,7 @@ const handleIframeLoad = () => {
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
             <div>
-              <h2 style={{ marginTop: 0, fontSize: '20px', color: '#111211' }}>Campaign Feedback</h2>
+              <h2 style={{ marginTop: 0, fontSize: '20px', color: '#111211' }}>Request Amends</h2>
               <p style={{ fontSize: '14px', color: '#5f6263', margin: 0 }}>Reviewing: <strong>{id}</strong></p>
             </div>
             

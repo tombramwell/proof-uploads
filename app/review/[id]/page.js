@@ -286,7 +286,7 @@ const handleIframeLoad = () => {
                 placeholder="Highlight text and click the Quote button for easy markups, then detail the requested changes here. Click 'Add to list' to keep amends separate for clarity, then click 'Submit All' when complete." 
                 value={draftComment} 
                 onChange={(e) => setDraftComment(e.target.value)} 
-                rows={4} 
+                rows={8} 
                 style={{ padding: '12px', borderRadius: '6px', border: '1px solid #b4b5b6', fontSize: '14px', resize: 'vertical' }} 
               />
               <button type="button" onClick={handleAddAmend} style={{ padding: '10px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}>

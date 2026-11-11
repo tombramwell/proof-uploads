@@ -7,7 +7,7 @@ export default function ProofUploader() {
   const [passcode, setPasscode] = useState("");
   const [arf, setArf] = useState("");
   const [proofNumber, setProofNumber] = useState("");
-  
+  const [enableComments, setEnableComments] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [error, setError] = useState("");
@@ -130,10 +130,18 @@ export default function ProofUploader() {
 
       const blobUrl = new URL(data.url);
       const fileName = blobUrl.pathname.split('/').pop();
-
-      const proofId = fileName.replace(/\.html?$/i, '');
       const baseUrl = window.location.origin; 
-      const cleanUrl = `${baseUrl}/review/${proofId}`;
+      
+      let cleanUrl = "";
+      
+      if (enableComments) {
+        // Generate the new dashboard URL
+        const proofId = fileName.replace(/\.html?$/i, '');
+        cleanUrl = `${baseUrl}/review/${proofId}`;
+      } else {
+        // Generate the classic raw HTML URL
+        cleanUrl = `${baseUrl}/${fileName}`;
+      }
       
       setShareUrl(cleanUrl);
       
@@ -240,6 +248,22 @@ export default function ProofUploader() {
               required
               className="w-full px-4 py-2 border border-brand-secondary/50 rounded-brand focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-brand-bg/50"
             />
+          </div>
+
+          <div className="flex items-center gap-3 p-4 bg-brand-bg/50 border border-brand-secondary/50 rounded-brand">
+            <input
+              type="checkbox"
+              id="enableComments"
+              checked={enableComments}
+              onChange={(e) => setEnableComments(e.target.checked)}
+              className="w-5 h-5 text-brand-accent rounded focus:ring-brand-accent cursor-pointer"
+            />
+            <label htmlFor="enableComments" className="text-sm font-semibold text-brand-primary cursor-pointer select-none">
+              Enable direct commenting
+              <span className="block text-xs font-normal text-brand-text mt-0.5">
+                If unchecked, generates a full-screen HTML link
+              </span>
+            </label>
           </div>
 
           {error && <div className="text-red-700 font-medium text-sm p-3 bg-red-50 border border-red-200 rounded-brand">{error}</div>}

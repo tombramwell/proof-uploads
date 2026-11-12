@@ -91,7 +91,7 @@ export default function ProofUploader() {
     }
   };
 
-  const handleUpload = async (e) => {
+const handleUpload = async (e) => {
     e.preventDefault();
     if (!file) return;
 
@@ -102,6 +102,28 @@ export default function ProofUploader() {
 
     setIsLoading(true);
     setError("");
+
+    // --- CLOUDFLARE R2 OVERWRITE CHECK ---
+    // Added backticks so the variables are injected correctly
+    const expectedFileName = `${arf}-v${proofNumber}.html`; 
+    
+    try {
+      const checkRes = await fetch(`/${expectedFileName}`, { method: 'HEAD' });
+      
+      if (checkRes.ok) {
+        const confirmOverwrite = window.confirm(
+          "⚠️ A proof with this exact name and version already exists.\n\nAre you sure you want to overwrite it?"
+        );
+        
+        if (!confirmOverwrite) {
+          setIsLoading(false);
+          return;
+        }
+      }
+    } catch (checkErr) {
+      console.warn("Could not verify if file exists, proceeding with upload attempt...", checkErr);
+    }
+    // -------------------------------------
 
     const formData = new FormData();
     formData.append("file", file);
@@ -135,11 +157,9 @@ export default function ProofUploader() {
       let cleanUrl = "";
       
       if (enableComments) {
-        // Generate the new dashboard URL
         const proofId = fileName.replace(/\.html?$/i, '');
         cleanUrl = `${baseUrl}/review/${proofId}`;
       } else {
-        // Generate the classic raw HTML URL
         cleanUrl = `${baseUrl}/${fileName}`;
       }
       

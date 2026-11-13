@@ -237,9 +237,20 @@ const handleIframeLoad = () => {
             </button>
           </div>
           
-          {/* We wrap everything in the form so the Name input remains required for submission */}
+{/* We wrap everything in the form so the Name input remains required for submission */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', minHeight: 'min-content' }}>
             
+            {/* NEW: INSTRUCTIONS (Hides automatically when user starts interacting) */}
+            {!highlightedText && !draftComment && amendsList.length === 0 && (
+              <div style={{ padding: '16px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', color: '#1e3a8a', fontSize: '13px', lineHeight: '1.5' }}>
+                <strong style={{ display: 'block', marginBottom: '8px' }}>How to submit amends:</strong>
+                <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <li><strong>Text changes:</strong> Highlight the specific text on the proof and click the Quote button that appears to generate a reference point for the desired change.</li>
+                  <li><strong>Images & Queries:</strong> For replacement images or general questions, please reply directly to the email containing your proof link.</li>
+                </ul>
+              </div>
+            )}
+
             {/* 1. NAME INPUT IS NOW AT THE TOP */}
             <input 
               type="text" 
@@ -283,7 +294,7 @@ const handleIframeLoad = () => {
             {/* 4. DRAFTING TEXT AREA */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <textarea 
-                placeholder="Highlight text and click the Quote button for easy markups, then detail the requested changes here. Click 'Add to list' to keep amends separate for clarity, then click 'Submit All' when complete." 
+                placeholder="Enter text here..." 
                 value={draftComment} 
                 onChange={(e) => setDraftComment(e.target.value)} 
                 rows={8} 

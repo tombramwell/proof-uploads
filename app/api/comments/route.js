@@ -25,19 +25,23 @@ export async function POST(request) {
     });
 
     // --- NEW: GOOGLE CHAT NOTIFICATION ---
-    const chatUrl = process.env.GOOGLE_CHAT_WEBHOOK;
+const chatUrl = process.env.GOOGLE_CHAT_WEBHOOK;
     if (chatUrl) {
       const chatPayload = {
         text: `🚨 *New amends submitted!*\n*Proof:* ${proofId}\n<https://reachstudioproof.com/amends|👉 View the Dashboard>`
       };
 
-      // We DON'T 'await' this fetch. We let it run in the background so 
-      // the client's screen shows "Success!" instantly without waiting for Google.
-      fetch(chatUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-        body: JSON.stringify(chatPayload)
-      }).catch(err => console.error('Failed to ping Google Chat:', err));
+      try {
+        // We MUST 'await' this on Vercel, otherwise the serverless function 
+        // shuts down before the request actually sends!
+        await fetch(chatUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+          body: JSON.stringify(chatPayload)
+        });
+      } catch (err) {
+        console.error('Failed to ping Google Chat:', err);
+      }
     }
     // -------------------------------------
     

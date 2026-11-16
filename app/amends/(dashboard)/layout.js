@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import LoginClient from './LoginClient';
+import LoginClient from '../LoginClient';
 
 export default async function AmendsLayout({ children }) {
   // Await the cookies object (required in Next.js 15)

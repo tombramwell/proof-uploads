@@ -24,26 +24,47 @@ export async function POST(request) {
       createdAt: new Date(),
     });
 
-    // --- NEW: GOOGLE CHAT NOTIFICATION ---
-const chatUrl = process.env.GOOGLE_CHAT_WEBHOOK;
-    if (chatUrl) {
-      const chatPayload = {
+// --- NEW: MULTI-ROOM GOOGLE CHAT NOTIFICATIONS ---
+    const teamChatUrl = process.env.GOOGLE_CHAT_WEBHOOK;
+    const salesChatUrl = process.env.SALES_CHAT_WEBHOOK; 
+    
+    const chatRequests = [];
+
+    // 1. The Design/Dev Team Alert (Includes Dashboard Link)
+    if (teamChatUrl) {
+      const teamPayload = {
         text: `🚨 *New amends submitted!*\n*Proof:* ${proofId}\n<https://reachstudioproof.com/amends|👉 View the Dashboard>`
       };
-
-      try {
-        // We MUST 'await' this on Vercel, otherwise the serverless function 
-        // shuts down before the request actually sends!
-        await fetch(chatUrl, {
+      
+      chatRequests.push(
+        fetch(teamChatUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-          body: JSON.stringify(chatPayload)
-        });
-      } catch (err) {
-        console.error('Failed to ping Google Chat:', err);
-      }
+          body: JSON.stringify(teamPayload)
+        }).catch(err => console.error('Failed to ping Team Chat:', err))
+      );
     }
-    // -------------------------------------
+
+    // 2. The Sales Team Alert (Clean and Simple)
+if (salesChatUrl) {
+      const salesPayload = {
+        text: `👀 *Client Activity:* Amends were just submitted for proof *${proofId}*.\n<https://reachstudioproof.com/amends/${proofId}|👉 View Requested Amends>`
+      };
+      
+      chatRequests.push(
+        fetch(salesChatUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+          body: JSON.stringify(salesPayload)
+        }).catch(err => console.error('Failed to ping Sales Chat:', err))
+      );
+    }
+
+    // Fire all configured webhooks concurrently and wait for them to finish
+    if (chatRequests.length > 0) {
+      await Promise.all(chatRequests);
+    }
+    // -------------------------------------------------
     
     return NextResponse.json({ success: true });
   } catch (error) {

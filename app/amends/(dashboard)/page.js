@@ -1,5 +1,5 @@
 import { MongoClient } from 'mongodb';
-import AmendCard from './AmendCard'; // Import the new interactive card
+import AmendCard from '../AmendCard'; // Import the new interactive card
 
 export const dynamic = 'force-dynamic'; 
 

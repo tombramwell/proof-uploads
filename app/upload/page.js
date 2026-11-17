@@ -195,7 +195,7 @@ export default function BasicProofUploader() {
           <div className="flex gap-4">
             <div className="w-1/2">
               <label htmlFor="arf" className="block text-sm font-semibold text-brand-primary mb-1">
-                ARF<span className="text-red-500">*</span>
+                ARF or Client Name<span className="text-red-500">*</span>
               </label>
               <input
                 type="text"

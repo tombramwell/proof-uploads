@@ -12,7 +12,7 @@ export default async function ProofWorkspace({ params }) {
   
   // Fetch all pending amends for this specific proof
   const rawComments = await db.collection('comments')
-                              .find({ proofId: proofId, status: { $ne: 'Actioned' } })
+                              .find({ proofId: proofId })
                               .sort({ createdAt: 1 }) // Oldest first so they read in chronological order
                               .toArray();
 

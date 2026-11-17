@@ -7,10 +7,16 @@ export default function ProofUploader() {
   const [passcode, setPasscode] = useState("");
   const [arf, setArf] = useState("");
   const [proofNumber, setProofNumber] = useState("");
-  const [enableComments, setEnableComments] = useState(true);
+  
+  // NEW: Dropdown states
+  const [author, setAuthor] = useState("");
+  const [salesTeam, setSalesTeam] = useState("");
+  
   const [isLoading, setIsLoading] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [error, setError] = useState("");
+  
+  // Retained video upload states
   const [videoFile, setVideoFile] = useState(null);
   const [videoEmbedUrl, setVideoEmbedUrl] = useState("");
   const [isVideoUploading, setIsVideoUploading] = useState(false);
@@ -56,7 +62,6 @@ export default function ProofUploader() {
     setError("");
 
     try {
-      // 1. Get the secure upload URL from our API
       const authRes = await fetch('/api/drive-auth', {
         method: 'POST',
         body: JSON.stringify({ filename: file.name, mimeType: file.type }),
@@ -64,7 +69,6 @@ export default function ProofUploader() {
       });
       const { uploadUrl } = await authRes.json();
 
-      // 2. Upload directly from the browser to Google Drive (Bypasses Vercel limits!)
       const uploadRes = await fetch(uploadUrl, {
         method: 'PUT',
         body: file,
@@ -78,8 +82,6 @@ export default function ProofUploader() {
       }
 
       const driveData = await uploadRes.json();
-      
-      // 3. Construct the embed URL from the Drive File ID
       const embedUrl = `https://drive.google.com/file/d/${driveData.id}/preview`;
       setVideoEmbedUrl(embedUrl);
       
@@ -91,7 +93,7 @@ export default function ProofUploader() {
     }
   };
 
-const handleUpload = async (e) => {
+  const handleUpload = async (e) => {
     e.preventDefault();
     if (!file) return;
 
@@ -104,7 +106,6 @@ const handleUpload = async (e) => {
     setError("");
 
     // --- CLOUDFLARE R2 OVERWRITE CHECK ---
-    // Added backticks so the variables are injected correctly
     const expectedFileName = `${arf}-v${proofNumber}.html`; 
     
     try {
@@ -130,6 +131,10 @@ const handleUpload = async (e) => {
     formData.append("passcode", passcode);
     formData.append("arf", arf);
     formData.append("proofNumber", proofNumber);
+    
+    // NEW: Append the dropdown values to the backend payload
+    formData.append("author", author);
+    formData.append("salesTeam", salesTeam);
 
     if (videoEmbedUrl) {
       formData.append("videoEmbedUrl", videoEmbedUrl);
@@ -154,14 +159,9 @@ const handleUpload = async (e) => {
       const fileName = blobUrl.pathname.split('/').pop();
       const baseUrl = window.location.origin; 
       
-      let cleanUrl = "";
-      
-      if (enableComments) {
-        const proofId = fileName.replace(/\.html?$/i, '');
-        cleanUrl = `${baseUrl}/review/${proofId}`;
-      } else {
-        cleanUrl = `${baseUrl}/${fileName}`;
-      }
+      // NEW: Always generate the dashboard URL for this main uploader
+      const proofId = fileName.replace(/\.html?$/i, '');
+      const cleanUrl = `${baseUrl}/review/${proofId}`;
       
       setShareUrl(cleanUrl);
       
@@ -179,11 +179,10 @@ const handleUpload = async (e) => {
 
   return (
     <main className="min-h-screen p-8 flex flex-col items-center justify-center">
-      {/* We apply the custom brand-card class here for the hover/shadow effects */}
       <div className="max-w-xl w-full brand-card p-8">
         <h1 className="text-2xl font-bold mb-2 text-gray-800">Reach Studio Proof Link Generator</h1>
         <p className="text-gray-600 mb-6">
-          Upload the SingleFile &apos;.html&apos; document to generate a shareable link.
+          Upload the SingleFile &apos;.html&apos; document to generate a shareable interactive link.
         </p>
 
         <form onSubmit={handleUpload} className="space-y-5">
@@ -230,6 +229,50 @@ const handleUpload = async (e) => {
               />
             </div>
           </div>
+
+          {/* NEW: Author & Sales Team Dropdowns */}
+          <div className="flex gap-4">
+            <div className="w-1/2">
+              <label htmlFor="author" className="block text-sm font-semibold text-brand-primary mb-1">
+                Author<span className="text-red-500">*</span>
+              </label>
+              <select
+                id="author"
+                required
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                className="w-full px-4 py-2 border border-brand-secondary/50 rounded-brand focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-brand-bg/50 text-sm"
+              >
+                <option value="" disabled>Select Author...</option>
+                {/* Add your actual authors here */}
+                <option value="Angela">Angela</option>
+                <option value="Charlotte">Charlotte</option>
+                <option value="Chris">Chris</option>
+                <option value="Ginette">Ginette</option>
+                <option value="Leena">Leena</option>
+                <option value="Paul">Paul</option>
+              </select>
+            </div>
+            <div className="w-1/2">
+              <label htmlFor="salesTeam" className="block text-sm font-semibold text-brand-primary mb-1">
+                Sales Team<span className="text-red-500">*</span>
+              </label>
+              <select
+                id="salesTeam"
+                required
+                value={salesTeam}
+                onChange={(e) => setSalesTeam(e.target.value)}
+                className="w-full px-4 py-2 border border-brand-secondary/50 rounded-brand focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-brand-bg/50 text-sm"
+              >
+                <option value="" disabled>Select Team...</option>
+                {/* Add your actual sales teams here */}
+                <option value="Hub">Hub</option>
+                <option value="Field">Field</option>
+                <option value="Studio">Studio</option>
+              </select>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-semibold text-brand-primary mb-1">
               Optional: Insert Video (Google Drive)
@@ -268,22 +311,6 @@ const handleUpload = async (e) => {
               required
               className="w-full px-4 py-2 border border-brand-secondary/50 rounded-brand focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-brand-bg/50"
             />
-          </div>
-
-          <div className="flex items-center gap-3 p-4 bg-brand-bg/50 border border-brand-secondary/50 rounded-brand">
-            <input
-              type="checkbox"
-              id="enableComments"
-              checked={enableComments}
-              onChange={(e) => setEnableComments(e.target.checked)}
-              className="w-5 h-5 text-brand-accent rounded focus:ring-brand-accent cursor-pointer"
-            />
-            <label htmlFor="enableComments" className="text-sm font-semibold text-brand-primary cursor-pointer select-none">
-              Enable direct commenting
-              <span className="block text-xs font-normal text-brand-text mt-0.5">
-                If unchecked, generates a full-screen HTML link
-              </span>
-            </label>
           </div>
 
           {error && <div className="text-red-700 font-medium text-sm p-3 bg-red-50 border border-red-200 rounded-brand">{error}</div>}

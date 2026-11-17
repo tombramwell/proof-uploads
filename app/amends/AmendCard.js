@@ -54,6 +54,10 @@ export default function AmendCard({ item }) {
         Submitted by: <strong>{item.name}</strong>
       </div>
 
+      <div style={{ fontSize: '12px', color: '#5f6263', borderTop: '1px solid #cbd5e1', paddingTop: '12px', paddingBottom: '16px' }}>
+        Author: <strong>{item.author}</strong>
+      </div>
+
       {/* WORKFLOW STATUS BUTTONS */}
       <div style={{ display: 'flex', gap: '8px', opacity: isUpdating ? 0.5 : 1 }}>
         <button 

@@ -15,8 +15,9 @@ export async function POST(request) {
     }
     
     const db = client.db('studio_proofs');
-    const commentsCollection = db.collection('comments'); 
     
+    // 1. Save the new comment
+    const commentsCollection = db.collection('comments'); 
     await commentsCollection.insertOne({
       proofId,
       name,
@@ -24,18 +25,22 @@ export async function POST(request) {
       createdAt: new Date(),
     });
 
-// --- NEW: MULTI-ROOM GOOGLE CHAT NOTIFICATIONS ---
+    // 2. NEW: Look up the proof metadata to find the sales team
+    const proofMeta = await db.collection('proofs').findOne({ proofId: proofId });
+    const salesTeam = proofMeta?.salesTeam || 'Unknown';
+
+    // --- CONDITIONAL GOOGLE CHAT NOTIFICATIONS ---
     const teamChatUrl = process.env.GOOGLE_CHAT_WEBHOOK;
-    const salesChatUrl = process.env.SALES_CHAT_WEBHOOK; 
+    const fieldSalesUrl = process.env.FIELD_SALES_WEBHOOK; 
+    const hubSalesUrl = process.env.HUB_SALES_WEBHOOK; 
     
     const chatRequests = [];
 
-    // 1. The Design/Dev Team Alert (Includes Dashboard Link)
+    // ALERT 1: The Writing Team (Always fires for every amend)
     if (teamChatUrl) {
       const teamPayload = {
         text: `🚨 *New amends submitted!*\n*Proof:* ${proofId}\n<https://reachstudioproof.com/amends|👉 View the Dashboard>`
       };
-      
       chatRequests.push(
         fetch(teamChatUrl, {
           method: 'POST',
@@ -45,26 +50,39 @@ export async function POST(request) {
       );
     }
 
-    // 2. The Sales Team Alert (Clean and Simple)
-if (salesChatUrl) {
-      const salesPayload = {
-        text: `👀 *Client Activity:* Amends were just submitted for proof *${proofId}*.\n<https://reachstudioproof.com/amends/${proofId}|👉 View Requested Amends>`
+    // ALERT 2: Field Sales (Only fires if the assigned team is 'Field')
+    if (fieldSalesUrl && salesTeam === 'Field') {
+      const fieldPayload = {
+        text: `👀 Amends were just submitted for proof *${proofId}*.\n<https://reachstudioproof.com/amends/${proofId}|👉 View Requested Amends>`
       };
-      
       chatRequests.push(
-        fetch(salesChatUrl, {
+        fetch(fieldSalesUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-          body: JSON.stringify(salesPayload)
-        }).catch(err => console.error('Failed to ping Sales Chat:', err))
+          body: JSON.stringify(fieldPayload)
+        }).catch(err => console.error('Failed to ping Field Sales Chat:', err))
       );
     }
 
-    // Fire all configured webhooks concurrently and wait for them to finish
+    // ALERT 3: Hub Sales (Only fires if the assigned team is 'Hub')
+    if (hubSalesUrl && salesTeam === 'Hub') {
+      const hubPayload = {
+        text: `👀 Amends were just submitted for proof *${proofId}*.\n<https://reachstudioproof.com/amends/${proofId}|👉 View Requested Amends>`
+      };
+      chatRequests.push(
+        fetch(hubSalesUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+          body: JSON.stringify(hubPayload)
+        }).catch(err => console.error('Failed to ping Hub Sales Chat:', err))
+      );
+    }
+
+    // Fire all configured webhooks concurrently
     if (chatRequests.length > 0) {
       await Promise.all(chatRequests);
     }
-    // -------------------------------------------------
+    // ---------------------------------------------
     
     return NextResponse.json({ success: true });
   } catch (error) {

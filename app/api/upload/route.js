@@ -1,15 +1,21 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
+import { MongoClient } from 'mongodb';
+
+// Initialize the MongoDB client once to prevent connection pooling issues on Vercel
+let client;
+const uri = process.env.MONGODB_URI;
 
 export async function POST(request) {
   try {
     const formData = await request.formData();
     const file = formData.get('file');
     const passcode = formData.get('passcode');
-    
     const arf = formData.get('arf');
     const proofNumber = formData.get('proofNumber');
+    const author = formData.get('author') || 'Unknown';
+    const salesTeam = formData.get('salesTeam') || 'Unknown';
 
     if (passcode !== process.env.UPLOAD_PASSCODE) {
       return NextResponse.json({ error: "Incorrect passcode" }, { status: 401 });
@@ -47,8 +53,7 @@ export async function POST(request) {
     $('header').css('position', 'sticky')
                   .css('top', '0')
                   .css('margin-top', '0')
-                  .css('z-index', '9999')
-              // .css('background-color', '#ffffff');
+                  .css('z-index', '9999');
     $('[data-testid="header-container"]').css('position', 'sticky')
                                          .css('top', '0')
                                          .css('z-index', '9999');
@@ -65,15 +70,12 @@ export async function POST(request) {
     let currentHtml = targetDiv.html();
     
     if (currentHtml) {
-      // /Updated/i means "case insensitive" (catches UPDATED, Updated, updated)
-      // \s* means "and any weird spaces or line breaks that come immediately after it"
       currentHtml = currentHtml.replace(/Updated\s*/i, ''); 
       targetDiv.html(currentHtml);
     }
     
     const videoEmbedUrl = formData.get('videoEmbedUrl');
     if (videoEmbedUrl) {
-      // Find the specific div, clear anything inside it, and inject the Drive iframe
       $('.PrimisPlayer_player-poster-wrapper-embed__agVi_').empty().append(
         `<iframe src="${videoEmbedUrl}" width="100%" height="100%" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`
       );
@@ -93,7 +95,7 @@ export async function POST(request) {
     baseName = baseName.replace(/[^a-zA-Z0-9-]/g, '-');
     const customFilename = `${baseName}.html`;
 
-// 5. Connect to Cloudflare R2
+    // 5. Connect to Cloudflare R2
     const S3 = new S3Client({
       region: "auto",
       endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
@@ -111,9 +113,33 @@ export async function POST(request) {
       ContentType: 'text/html',
     }));
 
+    // --- NEW: SAVE PROOF METADATA TO MONGODB ---
+    if (!client) {
+      client = new MongoClient(uri);
+      await client.connect();
+    }
+    
+    // We use the same 'studio_proofs' database where your comments live
+    const db = client.db('studio_proofs'); 
+    
+    // We create a separate 'proofs' collection just for the upload metadata
+    await db.collection('proofs').updateOne(
+      { proofId: baseName }, 
+      { 
+        $set: { 
+          proofId: baseName, 
+          author: author, 
+          salesTeam: salesTeam, 
+          uploadedAt: new Date() 
+        } 
+      },
+      { upsert: true } // If a proof with this baseName exists, it updates it. If not, it creates it.
+    );
+    // -------------------------------------------
+
     // 7. Generate the final viewable link!
     const origin = request.headers.get('origin') || 'http://localhost:3000';
-    const finalUrl = `${origin}/${customFilename}`; // Removed /proof/
+    const finalUrl = `${origin}/${customFilename}`; 
     return NextResponse.json({ url: finalUrl });
     
   } catch (error) {

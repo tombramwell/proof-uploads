@@ -34,12 +34,40 @@ export async function POST(request) {
 
     // 2. Load the HTML into Cheerio
     const $ = cheerio.load(rawHtml);
+    const trendingBar = $('[data-testid="trending-bar"]');
+    const trendingContainer = $('[class*="TrendingBar_trendingbar-container"]');
 
     // 3. REMOVE THE AD SLOT 
+    if (trendingBar.length > 0 || trendingContainer.length > 0) {
+      trendingBar.remove();
+      trendingContainer.remove();
+      
+      $('header').removeAttr('data-trending-bar').css('margin-bottom', '0');
+
+      $('head').append(`
+        <style>
+          /* Mobile & Tablet: 56px red header + 49px white nav = 105px */
+          @media screen and (max-width: 1023px) {
+            [class*="AdvertisingFeatureBar_advertising-feature-bar"] {
+              top: 105px !important;
+            }
+          }
+          /* Desktop: 80px red header + 49px white nav = 129px */
+          @media screen and (min-width: 1024px) {
+            [class*="AdvertisingFeatureBar_advertising-feature-bar"] {
+              top: 129px !important;
+            }
+          }
+        </style>
+      `);
+    }
     $('[data-testid="commercial-above-header-box-1"]').remove();
     $('[data-testid="commercial-1"]').remove();
     $('[data-testid="skin-ad-left"]').remove();
     $('[data-testid="skin-ad-right"]').remove();
+    // $('[data-testid="trending-bar"]').remove();
+    // $('header').removeAttr('data-trending-bar').css('margin-bottom', '0');
+    // $('[class*="TrendingBar_trendingbar-container"]').remove();
     $('[id="qc-ad-fixed-size-wrapper"]').remove();
     $('[data-testid="byline-publishedDate"]').remove();
     $('[class="GoogleActiveViewInnerContainer"]').remove();

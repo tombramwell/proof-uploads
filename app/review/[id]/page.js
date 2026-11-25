@@ -9,7 +9,7 @@ export default function ReviewDashboard({ params }) {
   const [name, setName] = useState('');
   const [draftComment, setDraftComment] = useState('');
   
-  // NEW: The Ghost Array to hold the pinpoints silently
+  // The Ghost Array to hold the pinpoints silently
   const [draftQuotes, setDraftQuotes] = useState([]); 
   
   const [amendsList, setAmendsList] = useState([]);
@@ -18,6 +18,7 @@ export default function ReviewDashboard({ params }) {
   const [highlightContext, setHighlightContext] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   useEffect(() => {
     const savedDraft = localStorage.getItem(`amends_draft_${id}`);
@@ -30,6 +31,13 @@ export default function ReviewDashboard({ params }) {
         if (parsed.draftQuotes) setDraftQuotes(parsed.draftQuotes);
       } catch (e) {}
     }
+
+    // Show the instructions modal automatically on first visit
+    const hasSeenHelp = localStorage.getItem('has_seen_proof_instructions');
+    if (!hasSeenHelp) {
+      setShowHelpModal(true);
+    }
+
     setIsLoaded(true);
   }, [id]);
 
@@ -39,7 +47,12 @@ export default function ReviewDashboard({ params }) {
     }
   }, [name, draftComment, amendsList, draftQuotes, isLoaded, id]);
 
-const handleIframeLoad = () => {
+  const closeHelpModal = () => {
+    setShowHelpModal(false);
+    localStorage.setItem('has_seen_proof_instructions', 'true');
+  };
+
+  const handleIframeLoad = () => {
     try {
       // Get the window object so we can read the selection reliably
       const iframeWin = iframeRef.current.contentWindow;
@@ -221,7 +234,7 @@ const handleIframeLoad = () => {
           </button>
         </div>
 
-<div className="sidebar-panel">
+        <div className="sidebar-panel">
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
             <div>
@@ -229,29 +242,42 @@ const handleIframeLoad = () => {
               <p style={{ fontSize: '14px', color: '#5f6263', margin: 0 }}>Reviewing: <strong>{id}</strong></p>
             </div>
             
-            {/* COLLAPSE BUTTON */}
-            <button 
-              onClick={() => setIsSidebarOpen(false)}
-              style={{ background: 'none', border: '1px solid #cbd5e1', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', color: '#64748b' }}>
-              Full Screen ⤢
-            </button>
+            {/* HEADER ACTIONS: HELP & FULL SCREEN */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button 
+                type="button"
+                onClick={() => setShowHelpModal(true)}
+                title="How to use this page"
+                style={{ 
+                  background: '#f1f5f9', 
+                  border: '1px solid #cbd5e1', 
+                  width: '28px', 
+                  height: '28px', 
+                  borderRadius: '50%', 
+                  cursor: 'pointer', 
+                  fontSize: '14px', 
+                  fontWeight: 'bold', 
+                  color: '#334155',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                ?
+              </button>
+
+              <button 
+                type="button"
+                onClick={() => setIsSidebarOpen(false)}
+                style={{ background: 'none', border: '1px solid #cbd5e1', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', color: '#64748b' }}>
+                Full Screen ⤢
+              </button>
+            </div>
           </div>
           
-{/* We wrap everything in the form so the Name input remains required for submission */}
+          {/* We wrap everything in the form so the Name input remains required for submission */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', minHeight: 'min-content' }}>
             
-            {/* NEW: INSTRUCTIONS (Hides automatically when user starts interacting) */}
-            {!highlightedText && !draftComment && amendsList.length === 0 && (
-              <div style={{ padding: '16px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', color: '#1e3a8a', fontSize: '13px', lineHeight: '1.5' }}>
-                <strong style={{ display: 'block', marginBottom: '8px' }}>How to submit amends:</strong>
-                <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <li><strong>Text changes:</strong> Highlight the specific text on the proof and click the Quote button that appears to generate a reference point for the desired change.</li>
-                  <li><strong>Images & Queries:</strong> For replacement images or general questions, please reply directly to the email containing your proof link.</li>
-                </ul>
-              </div>
-            )}
-
-            {/* 1. NAME INPUT IS NOW AT THE TOP */}
+            {/* 1. NAME INPUT */}
             <input 
               type="text" 
               placeholder="Your Name" 
@@ -314,6 +340,75 @@ const handleIframeLoad = () => {
           </form>
 
         </div>
+
+        {/* HELP MODAL */}
+        {showHelpModal && (
+          <div 
+            onClick={closeHelpModal}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(15, 23, 42, 0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+              padding: '20px'
+            }}
+          >
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                maxWidth: '460px',
+                width: '100%',
+                padding: '28px',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15)',
+                color: '#1e293b',
+                lineHeight: '1.6'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a' }}>How to submit amends</h3>
+                <button 
+                  type="button"
+                  onClick={closeHelpModal}
+                  style={{ background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: '#64748b', lineHeight: 1 }}
+                >
+                  ×
+                </button>
+              </div>
+
+              <ul style={{ margin: '0 0 24px 0', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
+                <li>
+                  <strong>Text changes:</strong> Highlight the specific text on the proof and click the <em>Add as Quote</em> button that appears to generate a reference point for your change.
+                </li>
+                <li>
+                  <strong>Images &amp; Queries:</strong> For replacement images or general questions, please reply directly to the email containing your proof link.
+                </li>
+              </ul>
+
+              <button 
+                type="button"
+                onClick={closeHelpModal}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: '#2563eb',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
